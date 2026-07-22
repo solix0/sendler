@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="logo.png">
+    <title>sendler</title>
+    <!-- Підключаємо PeerJS з CDN -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Підключаємо бібліотеку QR-кодів -->
+    <script src="https://cdnjs.cloudflare.com/ajax5/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f7f9fc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --accent-light: #e0e7ff;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        header {
+            max-width: 600px;
+            width: 100%;
+            margin: 20px auto 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.7rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--primary);
+        }
+
+        .mode-switch {
+            display: flex;
+            background: var(--border-color);
+            padding: 4px;
+            border-radius: 99px;
+            gap: 4px;
+        }
+
+        .mode-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 99px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: var(--card-bg);
+            color: var(--text-main);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        main {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+            border: 1px solid var(--border-color);
+        }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fafafa;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary);
+            background: var(--accent-light);
+        }
+
+        .dropzone svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--primary);
+            margin-bottom: 12px;
+            fill: none;
+        }
+
+        .dropzone-text {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .dropzone-subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #fafafa;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+
+        .transfer-active {
+            text-align: center;
+            display: none;
+        }
+
+        .code-box {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 0.2em;
+            color: var(--primary);
+            background: var(--accent-light);
+            padding: 16px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        #qrcode img {
+            border-radius: 8px;
+            padding: 4px;
+            background: white;
+            border: 1px solid var(--border-color);
+        }
+
+        .pin-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 24px 0;
+        }
+
+        .pin-input {
+            width: 50px;
+            height: 60px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: #fafafa;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .pin-input:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .status-badge {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+sendler
+        </div>
+        <div class="mode-switch">
+            <button class="mode-btn active" onclick="switchTab('send')">Відправити</button>
+            <button class="mode-btn" onclick="switchTab('receive')">Отримати</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="card">
+            
+            <!-- SEND PANEL -->
+            <div id="send-panel" class="panel active">
+                <div id="form-view">
+                    <h1>Миттєва передача</h1>
+                    <p class="subtitle">Перетягніть файл або вставте текст</p>
+
+                    <div class="mode-switch" style="margin-bottom: 20px; width: fit-content;">
+                        <button class="mode-btn active" id="type-file-btn" onclick="switchType('file')">Файл</button>
+                        <button class="mode-btn" id="type-text-btn" onclick="switchType('text')">Текст</button>
+                    </div>
+
+                    <!-- File Dropzone -->
+                    <div id="file-input-container">
+                        <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                            <svg viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <div class="dropzone-text">Натисніть або перетягніть файл сюди</div>
+                            <div class="dropzone-subtext">Будь-які формати</div>
+                            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
+                        </div>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div id="text-input-container" style="display: none;">
+                        <textarea id="textPayload" placeholder="Введіть текст або посилання..."></textarea>
+                        <button class="btn" onclick="prepareTextSend()">Згенерувати код</button>
+                    </div>
+                </div>
+
+                <!-- Active Code View -->
+                <div id="code-view" class="transfer-active">
+                    <p class="subtitle">Введіть цей код на іншому пристрої:</p>
+                    <div class="code-box" id="displayCode">----</div>
+                    <div id="qrcode"></div>
+                    <div class="status-badge" id="sendStatus">Очікування підключення...</div>
+                    <button class="btn" style="background: #e2e8f0; color: var(--text-main); margin-top: 16px;" onclick="resetSend()">Скасувати</button>
+                </div>
+            </div>
+
+            <!-- RECEIVE PANEL -->
+            <div id="receive-panel" class="panel">
+                <h1>Отримання файлу</h1>
+                <p class="subtitle">Введіть 4-значний код з іншого пристрою</p>
+
+                <div class="pin-inputs">
+                    <input type="text" maxlength="1" class="pin-input" autofocus oninput="pinInputHandler(this, 0)">
+                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 1)">
+                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 2)">
+                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 3)">
+                </div>
+
+                <div class="status-badge" id="receiveStatus" style="text-align: center;"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        P2P технологія без збереження даних на серверах.
+    </footer>
+
+    <script>
+        let peer = null;
+        let activePayload = null; // { type: 'file'/'text', data: ..., name: ... }
+        let currentConnection = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('header .mode-btn')[0].classList.toggle('active', tab === 'send');
+            document.querySelectorAll('header .mode-btn')[1].classList.toggle('active', tab === 'receive');
+            document.getElementById('send-panel').classList.toggle('active', tab === 'send');
+            document.getElementById('receive-panel').classList.toggle('active', tab === 'receive');
+        }
+
+        function switchType(type) {
+            document.getElementById('type-file-btn').classList.toggle('active', type === 'file');
+            document.getElementById('type-text-btn').classList.toggle('active', type === 'text');
+            document.getElementById('file-input-container').style.display = type === 'file' ? 'block' : 'none';
+            document.getElementById('text-input-container').style.display = type === 'text' ? 'block' : 'none';
+        }
+
+        // --- ЛОГІКА ВІДПРАВНИКА ---
+        function initSenderPeer(payload) {
+            activePayload = payload;
+            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Префікс додаємо, щоб уникнути конфліктів ID в мережі PeerJS
+            const peerId = 'airdrop-' + randomCode;
+            
+            if (peer) { peer.destroy(); }
+            
+            peer = new Peer(peerId);
+
+            peer.on('open', (id) => {
+                document.getElementById('displayCode').innerText = randomCode;
+                document.getElementById('form-view').style.display = 'none';
+                document.getElementById('code-view').style.display = 'block';
+                document.getElementById('sendStatus').innerText = "Очікування підключення...";
+
+                // Генерація QR коду
+                document.getElementById('qrcode').innerHTML = "";
+                new QRCode(document.getElementById('qrcode'), {
+                    text: randomCode,
+                    width: 130,
+                    height: 130
+                });
+            });
+
+            peer.on('connection', (conn) => {
+                currentConnection = conn;
+                document.getElementById('sendStatus').innerText = "Підключено! Передача...";
+                
+                conn.on('open', () => {
+                    // Відправляємо дані одразу після з'єднання
+                    conn.send(activePayload);
+                    setTimeout(() => {
+                        document.getElementById('sendStatus').innerText = "Файл успішно передано! ✅";
+                    }, 500);
+                });
+            });
+
+            peer.on('error', (err) => {
+                // Якщо такий код вже зайнятий, пробуємо згенерувати інший
+                if (err.type === 'unavailable-id') {
+                    initSenderPeer(payload);
+                } else {
+                    alert("Помилка з'єднання: " + err.type);
+                }
+            });
+        }
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    initSenderPeer({
+                        type: 'file',
+                        name: file.name,
+                        mime: file.type,
+                        data: e.target.result
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function prepareTextSend() {
+            const text = document.getElementById('textPayload').value.trim();
+            if (!text) return alert("Введіть текст!");
+            initSenderPeer({
+                type: 'text',
+                data: text
+            });
+        }
+
+        function resetSend() {
+            if (peer) peer.destroy();
+            document.getElementById('form-view').style.display = 'block';
+            document.getElementById('code-view').style.display = 'none';
+            document.getElementById('textPayload').value = '';
+        }
+
+        // --- ЛОГІКА ОТРИМУВАЧА ---
+        function pinInputHandler(el, index) {
+            if (el.value.length >= 1) {
+                const next = el.nextElementSibling;
+                if (next && next.classList.contains('pin-input')) {
+                    next.focus();
+                }
+            }
+            
+            // Перевіряємо, чи всі 4 цифри введені
+            const inputs = document.querySelectorAll('.pin-input');
+            let code = "";
+            inputs.forEach(i => code += i.value);
+
+            if (code.length === 4) {
+                connectToSender(code);
+            }
+        }
+
+        function connectToSender(code) {
+            const statusEl = document.getElementById('receiveStatus');
+            statusEl.innerText = "Підключення до відправника...";
+
+            const targetPeerId = 'airdrop-' + code;
+            const receiverPeer = new Peer();
+
+            receiverPeer.on('open', () => {
+                const conn = receiverPeer.connect(targetPeerId);
+
+                conn.on('open', () => {
+                    statusEl.innerText = "З'єднання встановлено, завантаження...";
+                });
+
+                conn.on('data', (payload) => {
+                    statusEl.innerText = "Отримано! Зберігаємо...";
+                    
+                    if (payload.type === 'text') {
+                        // Якщо це текст — копіюємо в буфер або створюємо файл для скачування
+                        navigator.clipboard.writeText(payload.data).then(() => {
+                            statusEl.innerText = "Текст скопійовано в буфер обміну! ✅";
+                        }).catch(() => {
+                            statusEl.innerText = "Отримано текст (див. нижче)";
+                        });
+                        
+                        let p = document.createElement('p');
+                        p.style.marginTop = "10px";
+                        p.style.wordBreak = "break-all";
+                        p.style.padding = "10px";
+                        p.style.background = "#fafafa";
+                        p.style.borderRadius = "8px";
+                        p.innerText = payload.data;
+                        document.getElementById('receive-panel').appendChild(p);
+
+                    } else if (payload.type === 'file') {
+                        // Якщо це файл — автоматично створюємо лінк і скачуємо в завантаження
+                        const blob = dataURItoBlob(payload.data);
+                        const url = URL.createObjectURL(blob);
+                        
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = payload.name;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+
+                        statusEl.innerText = `Файл "${payload.name}" успішно завантажено! ✅`;
+                    }
+                });
+
+                conn.on('error', (err) => {
+                    statusEl.innerText = "Помилку знайдено або код невірний ❌";
+                });
+            });
+        }
+
+        // Допоміжна функція конвертації Base64 в Blob для файлів
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
+        }
+
+        // Drag and drop для відправки
+        const dropzone = document.getElementById('dropzone');
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+        });
+        dropzone.addEventListener('drop', (e) => {
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                handleFileSelect(document.getElementById('fileInput'));
+            }
+        });
+    </script>
+</body>
+</html>
