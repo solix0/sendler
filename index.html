@@ -6,9 +6,11 @@
     <link rel="icon" type="image/png" href="logo.png">
     <title>sendler</title>
     <!-- Підключаємо PeerJS з CDN -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
+    </script>
     <!-- Підключаємо бібліотеку QR-кодів -->
-    <script src="https://cdnjs.cloudflare.com/ajax5/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax5/libs/qrcodejs/1.0.0/qrcode.min.js">
+    </script>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -20,7 +22,10 @@
             --accent-light: #e0e7ff;
             --border-color: #e2e8f0;
             --success: #10b981;
+            --danger: #4f46e5;
+            --danger-hover: #4338ca;
             --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
             --radius: 16px;
         }
 
@@ -88,7 +93,7 @@
         .mode-btn.active {
             background: var(--card-bg);
             color: var(--text-main);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         main {
@@ -109,8 +114,12 @@
             border: 1px solid var(--border-color);
         }
 
-        .panel { display: none; }
-        .panel.active { display: block; }
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
 
         h1 {
             font-size: 1.5rem;
@@ -135,7 +144,8 @@
             background: #fafafa;
         }
 
-        .dropzone:hover, .dropzone.dragover {
+        .dropzone:hover,
+        .dropzone.dragover {
             border-color: var(--primary);
             background: var(--accent-light);
         }
@@ -193,10 +203,43 @@
             border: none;
             cursor: pointer;
             margin-top: 16px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .btn:hover { background: var(--primary-hover); }
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
 
         .transfer-active {
             text-align: center;
@@ -244,11 +287,18 @@
             background: #fafafa;
             outline: none;
             transition: all 0.2s;
+            caret-color: transparent;
         }
 
         .pin-input:focus {
             border-color: var(--primary);
             background: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .pin-input.has-value {
+            border-color: var(--primary);
+            background: var(--accent-light);
         }
 
         .status-badge {
@@ -264,13 +314,152 @@
             color: var(--text-muted);
             margin: 20px 0;
         }
+
+        .receive-actions {
+            margin-top: 20px;
+        }
+
+        /* --- МОДАЛЬНЕ ВІКНО В СТИЛІ САЙТУ --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 32px;
+            max-width: 420px;
+            width: 92%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 24px;
+            font-weight: 700;
+            background: #4f46e5;
+            color: #ffffff;
+        }
+
+        .modal-icon.warning {
+            background: #4f46e5;
+            color: #ffffff;
+        }
+
+        .modal-icon.success {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .modal-icon.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .modal-icon.info {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .modal-icon .icon-symbol {
+            line-height: 1;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .modal-text {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            margin-top: 0;
+            padding: 12px;
+            font-size: 0.95rem;
+        }
+
+        .modal-actions .btn-cancel {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .modal-actions .btn-cancel:hover {
+            background: #cbd5e1;
+        }
+
+        .modal-actions .btn-confirm {
+            background: var(--danger);
+            color: white;
+        }
+
+        .modal-actions .btn-confirm:hover {
+            background: var(--danger-hover);
+        }
+
+        .modal-actions .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-actions .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(24px) scale(0.96); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo">
-sendler
+            sendler
         </div>
         <div class="mode-switch">
             <button class="mode-btn active" onclick="switchTab('send')">Відправити</button>
@@ -280,7 +469,7 @@ sendler
 
     <main>
         <div class="card">
-            
+
             <!-- SEND PANEL -->
             <div id="send-panel" class="panel active">
                 <div id="form-view">
@@ -317,7 +506,7 @@ sendler
                     <div class="code-box" id="displayCode">----</div>
                     <div id="qrcode"></div>
                     <div class="status-badge" id="sendStatus">Очікування підключення...</div>
-                    <button class="btn" style="background: #e2e8f0; color: var(--text-main); margin-top: 16px;" onclick="resetSend()">Скасувати</button>
+                    <button class="btn" id="sendActionButton" onclick="handleSendAction()">Скасувати</button>
                 </div>
             </div>
 
@@ -326,18 +515,37 @@ sendler
                 <h1>Отримання файлу</h1>
                 <p class="subtitle">Введіть 4-значний код з іншого пристрою</p>
 
-                <div class="pin-inputs">
-                    <input type="text" maxlength="1" class="pin-input" autofocus oninput="pinInputHandler(this, 0)">
-                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 1)">
-                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 2)">
-                    <input type="text" maxlength="1" class="pin-input" oninput="pinInputHandler(this, 3)">
+                <div class="pin-inputs" id="pinInputs">
+                    <input type="text" maxlength="1" class="pin-input" autofocus>
+                    <input type="text" maxlength="1" class="pin-input">
+                    <input type="text" maxlength="1" class="pin-input">
+                    <input type="text" maxlength="1" class="pin-input">
                 </div>
 
                 <div class="status-badge" id="receiveStatus" style="text-align: center;"></div>
+                
+                <div id="receiveActions" class="receive-actions" style="display: none;">
+                    <button class="btn btn-secondary" onclick="resetReceive()">Готово</button>
+                </div>
             </div>
 
         </div>
     </main>
+
+    <!-- МОДАЛЬНЕ ВІКНО -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <div class="modal-icon warning">
+                <span class="icon-symbol">!</span>
+            </div>
+            <div class="modal-title" id="modalTitle">Підтвердження</div>
+            <div class="modal-text" id="modalText">Ви впевнені, що хочете скасувати передачу?</div>
+            <div class="modal-actions">
+                <button class="btn btn-cancel" onclick="closeModal()">Ні, залишити</button>
+                <button class="btn btn-confirm" id="modalConfirmBtn">Так, скасувати</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
         P2P технологія без збереження даних на серверах.
@@ -345,14 +553,184 @@ sendler
 
     <script>
         let peer = null;
-        let activePayload = null; // { type: 'file'/'text', data: ..., name: ... }
+        let activePayload = null;
         let currentConnection = null;
+        let isSendComplete = false;
+        let isReceiveComplete = false;
+        let receiverPeer = null;
+        let pendingAction = null;
+
+        // --- ФУНКЦІЇ ДЛЯ МОДАЛЬНОГО ВІКНА ---
+        function showModal(title, text, confirmText, onConfirm, type) {
+            const modal = document.getElementById('confirmModal');
+            const icon = modal.querySelector('.modal-icon');
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            
+            // Скидаємо всі класи іконки
+            icon.className = 'modal-icon';
+            
+            if (type === 'error') {
+                icon.classList.add('error');
+                icon.querySelector('.icon-symbol').textContent = '✕';
+            } else if (type === 'success') {
+                icon.classList.add('success');
+                icon.querySelector('.icon-symbol').textContent = '✓';
+            } else if (type === 'info') {
+                icon.classList.add('info');
+                icon.querySelector('.icon-symbol').textContent = 'i';
+            } else {
+                icon.classList.add('warning');
+                icon.querySelector('.icon-symbol').textContent = '!';
+            }
+            
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalText').textContent = text;
+            confirmBtn.textContent = confirmText;
+            
+            // Змінюємо стиль кнопки підтвердження в залежності від типу
+            if (type === 'error') {
+                confirmBtn.className = 'btn btn-primary';
+            } else if (type === 'success') {
+                confirmBtn.className = 'btn btn-success';
+            } else {
+                confirmBtn.className = 'btn btn-confirm';
+            }
+            
+            pendingAction = onConfirm;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            pendingAction = null;
+        }
+
+        document.getElementById('modalConfirmBtn').addEventListener('click', function() {
+            if (pendingAction) {
+                pendingAction();
+            }
+            closeModal();
+        });
+
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // --- ЛОГІКА PIN-ВВОДУ ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.pin-input');
+            
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/\D/g, '');
+                    
+                    if (this.value.length > 0) {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                    
+                    if (this.value.length === 1) {
+                        const nextInput = this.nextElementSibling;
+                        if (nextInput && nextInput.classList.contains('pin-input')) {
+                            nextInput.focus();
+                        }
+                    }
+                    
+                    checkPinComplete();
+                });
+                
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace') {
+                        if (this.value.length === 0) {
+                            const prevInput = this.previousElementSibling;
+                            if (prevInput && prevInput.classList.contains('pin-input')) {
+                                prevInput.focus();
+                                prevInput.value = '';
+                                prevInput.classList.remove('has-value');
+                                e.preventDefault();
+                            }
+                        } else {
+                            this.value = '';
+                            this.classList.remove('has-value');
+                            e.preventDefault();
+                        }
+                        document.getElementById('receiveStatus').innerText = '';
+                        document.getElementById('receiveActions').style.display = 'none';
+                    }
+                });
+                
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text');
+                    const digits = pasted.replace(/\D/g, '');
+                    if (digits.length > 0) {
+                        this.value = digits[0];
+                        this.classList.add('has-value');
+                        checkPinComplete();
+                        const nextInput = this.nextElementSibling;
+                        if (nextInput && nextInput.classList.contains('pin-input')) {
+                            nextInput.focus();
+                            if (digits.length > 1) {
+                                let current = nextInput;
+                                for (let i = 1; i < digits.length && current; i++) {
+                                    if (current.classList.contains('pin-input')) {
+                                        current.value = digits[i];
+                                        current.classList.add('has-value');
+                                        const next = current.nextElementSibling;
+                                        if (i < digits.length - 1 && next && next.classList.contains('pin-input')) {
+                                            current = next;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        checkPinComplete();
+                    }
+                });
+            });
+        });
+
+        function checkPinComplete() {
+            const inputs = document.querySelectorAll('.pin-input');
+            let code = "";
+            inputs.forEach(i => code += i.value);
+            
+            if (code.length === 4) {
+                connectToSender(code);
+            }
+        }
+
+        function clearPinInputs() {
+            const inputs = document.querySelectorAll('.pin-input');
+            inputs.forEach(i => {
+                i.value = '';
+                i.classList.remove('has-value');
+            });
+            if (inputs.length > 0) {
+                inputs[0].focus();
+            }
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('header .mode-btn')[0].classList.toggle('active', tab === 'send');
             document.querySelectorAll('header .mode-btn')[1].classList.toggle('active', tab === 'receive');
             document.getElementById('send-panel').classList.toggle('active', tab === 'send');
             document.getElementById('receive-panel').classList.toggle('active', tab === 'receive');
+            
+            if (tab === 'receive') {
+                resetReceiveState();
+            }
         }
 
         function switchType(type) {
@@ -365,13 +743,13 @@ sendler
         // --- ЛОГІКА ВІДПРАВНИКА ---
         function initSenderPeer(payload) {
             activePayload = payload;
+            isSendComplete = false;
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            // Префікс додаємо, щоб уникнути конфліктів ID в мережі PeerJS
+
             const peerId = 'airdrop-' + randomCode;
-            
+
             if (peer) { peer.destroy(); }
-            
+
             peer = new Peer(peerId);
 
             peer.on('open', (id) => {
@@ -379,8 +757,8 @@ sendler
                 document.getElementById('form-view').style.display = 'none';
                 document.getElementById('code-view').style.display = 'block';
                 document.getElementById('sendStatus').innerText = "Очікування підключення...";
+                setSendButton('cancel');
 
-                // Генерація QR коду
                 document.getElementById('qrcode').innerHTML = "";
                 new QRCode(document.getElementById('qrcode'), {
                     text: randomCode,
@@ -392,24 +770,57 @@ sendler
             peer.on('connection', (conn) => {
                 currentConnection = conn;
                 document.getElementById('sendStatus').innerText = "Підключено! Передача...";
-                
+
                 conn.on('open', () => {
-                    // Відправляємо дані одразу після з'єднання
                     conn.send(activePayload);
                     setTimeout(() => {
-                        document.getElementById('sendStatus').innerText = "Файл успішно передано! ✅";
+                        document.getElementById('sendStatus').innerText = "Файл успішно передано!";
+                        isSendComplete = true;
+                        setSendButton('done');
                     }, 500);
                 });
             });
 
             peer.on('error', (err) => {
-                // Якщо такий код вже зайнятий, пробуємо згенерувати інший
                 if (err.type === 'unavailable-id') {
                     initSenderPeer(payload);
                 } else {
-                    alert("Помилка з'єднання: " + err.type);
+                    showModal(
+                        'Помилка з\'єднання',
+                        'Не вдалося встановити з\'єднання. Спробуйте ще раз.',
+                        'Зрозуміло',
+                        () => {},
+                        'error'
+                    );
                 }
             });
+        }
+
+        function setSendButton(type) {
+            const btn = document.getElementById('sendActionButton');
+            if (type === 'cancel') {
+                btn.innerText = 'Скасувати';
+                btn.className = 'btn btn-secondary';
+            } else if (type === 'done') {
+                btn.innerText = 'Готово';
+                btn.className = 'btn btn-secondary';
+            }
+        }
+
+        function handleSendAction() {
+            if (isSendComplete) {
+                resetSend();
+            } else {
+                showModal(
+                    'Підтвердження',
+                    'Ви впевнені, що хочете скасувати передачу? Отримувач не зможе завантажити файл.',
+                    'Так, скасувати',
+                    function() {
+                        resetSend();
+                    },
+                    'warning'
+                );
+            }
         }
 
         function handleFileSelect(input) {
@@ -430,7 +841,16 @@ sendler
 
         function prepareTextSend() {
             const text = document.getElementById('textPayload').value.trim();
-            if (!text) return alert("Введіть текст!");
+            if (!text) {
+                showModal(
+                    'Помилка',
+                    'Будь ласка, введіть текст для передачі.',
+                    'Зрозуміло',
+                    () => {},
+                    'error'
+                );
+                return;
+            }
             initSenderPeer({
                 type: 'text',
                 data: text
@@ -439,36 +859,29 @@ sendler
 
         function resetSend() {
             if (peer) peer.destroy();
+            isSendComplete = false;
             document.getElementById('form-view').style.display = 'block';
             document.getElementById('code-view').style.display = 'none';
             document.getElementById('textPayload').value = '';
+            document.getElementById('qrcode').innerHTML = '';
+            setSendButton('cancel');
         }
 
         // --- ЛОГІКА ОТРИМУВАЧА ---
-        function pinInputHandler(el, index) {
-            if (el.value.length >= 1) {
-                const next = el.nextElementSibling;
-                if (next && next.classList.contains('pin-input')) {
-                    next.focus();
-                }
-            }
-            
-            // Перевіряємо, чи всі 4 цифри введені
-            const inputs = document.querySelectorAll('.pin-input');
-            let code = "";
-            inputs.forEach(i => code += i.value);
-
-            if (code.length === 4) {
-                connectToSender(code);
-            }
-        }
-
         function connectToSender(code) {
             const statusEl = document.getElementById('receiveStatus');
             statusEl.innerText = "Підключення до відправника...";
+            
+            document.getElementById('receiveActions').style.display = 'none';
+            isReceiveComplete = false;
 
             const targetPeerId = 'airdrop-' + code;
-            const receiverPeer = new Peer();
+            
+            if (receiverPeer) {
+                receiverPeer.destroy();
+            }
+            
+            receiverPeer = new Peer();
 
             receiverPeer.on('open', () => {
                 const conn = receiverPeer.connect(targetPeerId);
@@ -479,15 +892,16 @@ sendler
 
                 conn.on('data', (payload) => {
                     statusEl.innerText = "Отримано! Зберігаємо...";
-                    
+
                     if (payload.type === 'text') {
-                        // Якщо це текст — копіюємо в буфер або створюємо файл для скачування
                         navigator.clipboard.writeText(payload.data).then(() => {
-                            statusEl.innerText = "Текст скопійовано в буфер обміну! ✅";
+                            statusEl.innerText = "Текст скопійовано в буфер обміну!";
+                            showReceiveDone();
                         }).catch(() => {
                             statusEl.innerText = "Отримано текст (див. нижче)";
+                            showReceiveDone();
                         });
-                        
+
                         let p = document.createElement('p');
                         p.style.marginTop = "10px";
                         p.style.wordBreak = "break-all";
@@ -498,28 +912,69 @@ sendler
                         document.getElementById('receive-panel').appendChild(p);
 
                     } else if (payload.type === 'file') {
-                        // Якщо це файл — автоматично створюємо лінк і скачуємо в завантаження
-                        const blob = dataURItoBlob(payload.data);
-                        const url = URL.createObjectURL(blob);
-                        
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = payload.name;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        try {
+                            const blob = dataURItoBlob(payload.data);
+                            const url = URL.createObjectURL(blob);
 
-                        statusEl.innerText = `Файл "${payload.name}" успішно завантажено! ✅`;
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = payload.name;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            
+                            setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+                            statusEl.innerText = `Файл "${payload.name}" успішно завантажено!`;
+                            showReceiveDone();
+                        } catch (error) {
+                            statusEl.innerText = "Помилка при обробці файлу";
+                            showModal(
+                                'Помилка',
+                                'Не вдалося обробити отриманий файл. Спробуйте ще раз.',
+                                'Зрозуміло',
+                                () => {},
+                                'error'
+                            );
+                        }
                     }
                 });
 
                 conn.on('error', (err) => {
-                    statusEl.innerText = "Помилку знайдено або код невірний ❌";
+                    statusEl.innerText = "Помилку знайдено або код невірний";
                 });
+            });
+            
+            receiverPeer.on('error', (err) => {
+                statusEl.innerText = "Помилка з'єднання. Спробуйте ще раз";
             });
         }
 
-        // Допоміжна функція конвертації Base64 в Blob для файлів
+        function showReceiveDone() {
+            isReceiveComplete = true;
+            document.getElementById('receiveActions').style.display = 'block';
+        }
+
+        function resetReceive() {
+            if (receiverPeer) {
+                receiverPeer.destroy();
+                receiverPeer = null;
+            }
+            resetReceiveState();
+        }
+
+        function resetReceiveState() {
+            isReceiveComplete = false;
+            document.getElementById('receiveActions').style.display = 'none';
+            document.getElementById('receiveStatus').innerText = '';
+            
+            clearPinInputs();
+            
+            const receivePanel = document.getElementById('receive-panel');
+            const extraTexts = receivePanel.querySelectorAll('p:not(.subtitle):not(.status-badge)');
+            extraTexts.forEach(p => p.remove());
+        }
+
         function dataURItoBlob(dataURI) {
             const byteString = atob(dataURI.split(',')[1]);
             const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -531,13 +986,14 @@ sendler
             return new Blob([ab], { type: mimeString });
         }
 
-        // Drag and drop для відправки
         const dropzone = document.getElementById('dropzone');
         ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault();
+                dropzone.classList.add('dragover'); });
         });
         ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault();
+                dropzone.classList.remove('dragover'); });
         });
         dropzone.addEventListener('drop', (e) => {
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
