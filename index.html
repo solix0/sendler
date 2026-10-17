@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="logo.png">
-    <title>sendler</title>
-    <!-- Підключаємо PeerJS з CDN -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js">
-    </script>
-    <!-- Підключаємо бібліотеку QR-кодів -->
-    <script src="https://cdnjs.cloudflare.com/ajax5/libs/qrcodejs/1.0.0/qrcode.min.js">
-    </script>
+    <title>sendler - P2P Translyatsiya ta Vydil</title>
+    <!-- Pidklyuchayemo PeerJS z CDN -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f9fc;
@@ -47,7 +43,7 @@
         }
 
         header {
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             margin: 20px auto 10px;
             display: flex;
@@ -62,12 +58,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .logo svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--primary);
         }
 
         .mode-switch {
@@ -97,7 +87,7 @@
         }
 
         main {
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             margin: 0 auto;
             flex-grow: 1;
@@ -211,10 +201,6 @@
             transform: translateY(-1px);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
         .btn-secondary {
             background: #e2e8f0;
             color: var(--text-main);
@@ -235,6 +221,7 @@
 
         .btn-success {
             background: var(--success);
+            color: white;
         }
 
         .btn-success:hover {
@@ -257,18 +244,6 @@
             margin: 20px 0;
         }
 
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 16px;
-        }
-        #qrcode img {
-            border-radius: 8px;
-            padding: 4px;
-            background: white;
-            border: 1px solid var(--border-color);
-        }
-
         .pin-inputs {
             display: flex;
             gap: 12px;
@@ -287,7 +262,6 @@
             background: #fafafa;
             outline: none;
             transition: all 0.2s;
-            caret-color: transparent;
         }
 
         .pin-input:focus {
@@ -306,6 +280,41 @@
             font-size: 0.9rem;
             color: var(--text-muted);
             font-weight: 500;
+            text-align: center;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 16px;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .screen-share-box {
+            text-align: center;
+            padding: 32px 16px;
+            background: #fafafa;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+        }
+
+        .screen-share-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 12px;
+            stroke: var(--primary);
         }
 
         footer {
@@ -315,30 +324,19 @@
             margin: 20px 0;
         }
 
-        .receive-actions {
-            margin-top: 20px;
-        }
-
-        /* --- МОДАЛЬНЕ ВІКНО В СТИЛІ САЙТУ --- */
+        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            animation: fadeIn 0.25s ease;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .modal-box {
             background: var(--card-bg);
@@ -348,45 +346,6 @@
             width: 92%;
             box-shadow: var(--shadow-lg);
             border: 1px solid var(--border-color);
-            animation: slideUp 0.3s ease;
-        }
-
-        .modal-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
-            font-size: 24px;
-            font-weight: 700;
-            background: #4f46e5;
-            color: #ffffff;
-        }
-
-        .modal-icon.warning {
-            background: #4f46e5;
-            color: #ffffff;
-        }
-
-        .modal-icon.success {
-            background: #d1fae5;
-            color: #059669;
-        }
-
-        .modal-icon.error {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .modal-icon.info {
-            background: #dbeafe;
-            color: #2563eb;
-        }
-
-        .modal-icon .icon-symbol {
-            line-height: 1;
         }
 
         .modal-title {
@@ -394,73 +353,23 @@
             font-weight: 700;
             text-align: center;
             margin-bottom: 8px;
-            color: var(--text-main);
         }
 
         .modal-text {
             font-size: 0.95rem;
             color: var(--text-muted);
             text-align: center;
-            line-height: 1.6;
             margin-bottom: 24px;
         }
 
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-        }
-
-        .modal-actions .btn {
-            flex: 1;
-            margin-top: 0;
-            padding: 12px;
-            font-size: 0.95rem;
-        }
-
-        .modal-actions .btn-cancel {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-
-        .modal-actions .btn-cancel:hover {
-            background: #cbd5e1;
-        }
-
-        .modal-actions .btn-confirm {
-            background: var(--danger);
-            color: white;
-        }
-
-        .modal-actions .btn-confirm:hover {
-            background: var(--danger-hover);
-        }
-
-        .modal-actions .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .modal-actions .btn-primary:hover {
-            background: var(--primary-hover);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(24px) scale(0.96); opacity: 0; }
-            to { transform: translateY(0) scale(1); opacity: 1; }
-        }
+        .modal-actions { display: flex; gap: 12px; }
+        .modal-actions .btn { margin-top: 0; flex: 1; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">
-            sendler
-        </div>
+        <div class="logo">sendler</div>
         <div class="mode-switch">
             <button class="mode-btn active" onclick="switchTab('send')">Відправити</button>
             <button class="mode-btn" onclick="switchTab('receive')">Отримати</button>
@@ -474,11 +383,12 @@
             <div id="send-panel" class="panel active">
                 <div id="form-view">
                     <h1>Миттєва передача</h1>
-                    <p class="subtitle">Перетягніть файл або вставте текст</p>
+                    <p class="subtitle">Виберіть режим відправки або транслюйте екран</p>
 
                     <div class="mode-switch" style="margin-bottom: 20px; width: fit-content;">
                         <button class="mode-btn active" id="type-file-btn" onclick="switchType('file')">Файл</button>
                         <button class="mode-btn" id="type-text-btn" onclick="switchType('text')">Текст</button>
+                        <button class="mode-btn" id="type-screen-btn" onclick="switchType('screen')">Екран</button>
                     </div>
 
                     <!-- File Dropzone -->
@@ -498,21 +408,42 @@
                         <textarea id="textPayload" placeholder="Введіть текст або посилання..."></textarea>
                         <button class="btn" onclick="prepareTextSend()">Згенерувати код</button>
                     </div>
+
+                    <!-- Screen Share Input -->
+                    <div id="screen-input-container" style="display: none;">
+                        <div class="screen-share-box">
+                            <svg class="screen-share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                            <p class="dropzone-text" style="margin-bottom: 4px;">Демонстрація екрана</p>
+                            <p class="dropzone-subtext" style="margin-bottom: 16px;">Поділіться зображенням вашого екрана в реальному часі</p>
+                            <button class="btn" onclick="startScreenShare()">Почати трансляцію</button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Active Code View -->
+                <!-- Active Code View (File/Text/Screen) -->
                 <div id="code-view" class="transfer-active">
                     <p class="subtitle">Введіть цей код на іншому пристрої:</p>
                     <div class="code-box" id="displayCode">----</div>
-                    <div id="qrcode"></div>
+                    
+                    <div id="sender-video-wrapper" style="display: none; margin-bottom: 15px;">
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 6px;">Попередній перегляд екрана:</p>
+                        <div class="video-container">
+                            <video id="localVideo" autoplay playsinline muted></video>
+                        </div>
+                    </div>
+
                     <div class="status-badge" id="sendStatus">Очікування підключення...</div>
-                    <button class="btn" id="sendActionButton" onclick="handleSendAction()">Скасувати</button>
+                    <button class="btn btn-secondary" id="sendActionButton" onclick="handleSendAction()">Скасувати</button>
                 </div>
             </div>
 
             <!-- RECEIVE PANEL -->
             <div id="receive-panel" class="panel">
-                <h1>Отримання файлу</h1>
+                <h1>Отримання</h1>
                 <p class="subtitle">Введіть 4-значний код з іншого пристрою</p>
 
                 <div class="pin-inputs" id="pinInputs">
@@ -522,27 +453,31 @@
                     <input type="text" maxlength="1" class="pin-input">
                 </div>
 
+                <div id="receiver-video-wrapper" style="display: none;">
+                    <div class="video-container">
+                        <video id="remoteVideo" autoplay playsinline controls></video>
+                    </div>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="toggleFullscreen()">На весь екран ⛶</button>
+                </div>
+
                 <div class="status-badge" id="receiveStatus" style="text-align: center;"></div>
                 
-                <div id="receiveActions" class="receive-actions" style="display: none;">
-                    <button class="btn btn-secondary" onclick="resetReceive()">Готово</button>
+                <div id="receiveActions" class="receive-actions" style="display: none; margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="resetReceive()">Завершити</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <!-- МОДАЛЬНЕ ВІКНО -->
+    <!-- MODAL -->
     <div class="modal-overlay" id="confirmModal">
         <div class="modal-box">
-            <div class="modal-icon warning">
-                <span class="icon-symbol">!</span>
-            </div>
             <div class="modal-title" id="modalTitle">Підтвердження</div>
-            <div class="modal-text" id="modalText">Ви впевнені, що хочете скасувати передачу?</div>
+            <div class="modal-text" id="modalText">Ви впевнені, що хочете скасувати?</div>
             <div class="modal-actions">
-                <button class="btn btn-cancel" onclick="closeModal()">Ні, залишити</button>
-                <button class="btn btn-confirm" id="modalConfirmBtn">Так, скасувати</button>
+                <button class="btn btn-secondary" onclick="closeModal()">Ні</button>
+                <button class="btn btn-danger" id="modalConfirmBtn">Так, скасувати</button>
             </div>
         </div>
     </div>
@@ -552,6 +487,16 @@
     </footer>
 
     <script>
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        };
+
         let peer = null;
         let activePayload = null;
         let currentConnection = null;
@@ -559,43 +504,15 @@
         let isReceiveComplete = false;
         let receiverPeer = null;
         let pendingAction = null;
+        let localStream = null;
+        let currentSendMode = 'file';
 
-        // --- ФУНКЦІЇ ДЛЯ МОДАЛЬНОГО ВІКНА ---
-        function showModal(title, text, confirmText, onConfirm, type) {
+        function showModal(title, text, confirmText, onConfirm) {
             const modal = document.getElementById('confirmModal');
-            const icon = modal.querySelector('.modal-icon');
-            const confirmBtn = document.getElementById('modalConfirmBtn');
-            
-            // Скидаємо всі класи іконки
-            icon.className = 'modal-icon';
-            
-            if (type === 'error') {
-                icon.classList.add('error');
-                icon.querySelector('.icon-symbol').textContent = '✕';
-            } else if (type === 'success') {
-                icon.classList.add('success');
-                icon.querySelector('.icon-symbol').textContent = '✓';
-            } else if (type === 'info') {
-                icon.classList.add('info');
-                icon.querySelector('.icon-symbol').textContent = 'i';
-            } else {
-                icon.classList.add('warning');
-                icon.querySelector('.icon-symbol').textContent = '!';
-            }
-            
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalText').textContent = text;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
             confirmBtn.textContent = confirmText;
-            
-            // Змінюємо стиль кнопки підтвердження в залежності від типу
-            if (type === 'error') {
-                confirmBtn.className = 'btn btn-primary';
-            } else if (type === 'success') {
-                confirmBtn.className = 'btn btn-success';
-            } else {
-                confirmBtn.className = 'btn btn-confirm';
-            }
-            
             pendingAction = onConfirm;
             modal.classList.add('active');
         }
@@ -606,97 +523,42 @@
         }
 
         document.getElementById('modalConfirmBtn').addEventListener('click', function() {
-            if (pendingAction) {
-                pendingAction();
-            }
+            if (pendingAction) pendingAction();
             closeModal();
         });
 
-        document.getElementById('confirmModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // --- ЛОГІКА PIN-ВВОДУ ---
+        // --- PIN INPUT LOGIC ---
         document.addEventListener('DOMContentLoaded', function() {
             const inputs = document.querySelectorAll('.pin-input');
-            
             inputs.forEach((input, index) => {
-                input.addEventListener('input', function(e) {
+                input.addEventListener('input', function() {
                     this.value = this.value.replace(/\D/g, '');
-                    
-                    if (this.value.length > 0) {
-                        this.classList.add('has-value');
-                    } else {
-                        this.classList.remove('has-value');
+                    this.classList.toggle('has-value', this.value.length > 0);
+                    if (this.value.length === 1 && inputs[index + 1]) {
+                        inputs[index + 1].focus();
                     }
-                    
-                    if (this.value.length === 1) {
-                        const nextInput = this.nextElementSibling;
-                        if (nextInput && nextInput.classList.contains('pin-input')) {
-                            nextInput.focus();
-                        }
-                    }
-                    
                     checkPinComplete();
                 });
                 
                 input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace') {
-                        if (this.value.length === 0) {
-                            const prevInput = this.previousElementSibling;
-                            if (prevInput && prevInput.classList.contains('pin-input')) {
-                                prevInput.focus();
-                                prevInput.value = '';
-                                prevInput.classList.remove('has-value');
-                                e.preventDefault();
-                            }
-                        } else {
-                            this.value = '';
-                            this.classList.remove('has-value');
-                            e.preventDefault();
-                        }
-                        document.getElementById('receiveStatus').innerText = '';
-                        document.getElementById('receiveActions').style.display = 'none';
+                    if (e.key === 'Backspace' && !this.value && inputs[index - 1]) {
+                        inputs[index - 1].focus();
+                        inputs[index - 1].value = '';
+                        inputs[index - 1].classList.remove('has-value');
+                        e.preventDefault();
                     }
                 });
-                
+
                 input.addEventListener('paste', function(e) {
                     e.preventDefault();
-                    const pasted = (e.clipboardData || window.clipboardData).getData('text');
-                    const digits = pasted.replace(/\D/g, '');
-                    if (digits.length > 0) {
-                        this.value = digits[0];
-                        this.classList.add('has-value');
-                        checkPinComplete();
-                        const nextInput = this.nextElementSibling;
-                        if (nextInput && nextInput.classList.contains('pin-input')) {
-                            nextInput.focus();
-                            if (digits.length > 1) {
-                                let current = nextInput;
-                                for (let i = 1; i < digits.length && current; i++) {
-                                    if (current.classList.contains('pin-input')) {
-                                        current.value = digits[i];
-                                        current.classList.add('has-value');
-                                        const next = current.nextElementSibling;
-                                        if (i < digits.length - 1 && next && next.classList.contains('pin-input')) {
-                                            current = next;
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
+                    const digits = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                    digits.split('').forEach((char, i) => {
+                        if (inputs[i]) {
+                            inputs[i].value = char;
+                            inputs[i].classList.add('has-value');
                         }
-                        checkPinComplete();
-                    }
+                    });
+                    checkPinComplete();
                 });
             });
         });
@@ -705,21 +567,16 @@
             const inputs = document.querySelectorAll('.pin-input');
             let code = "";
             inputs.forEach(i => code += i.value);
-            
             if (code.length === 4) {
                 connectToSender(code);
             }
         }
 
         function clearPinInputs() {
-            const inputs = document.querySelectorAll('.pin-input');
-            inputs.forEach(i => {
+            document.querySelectorAll('.pin-input').forEach(i => {
                 i.value = '';
                 i.classList.remove('has-value');
             });
-            if (inputs.length > 0) {
-                inputs[0].focus();
-            }
         }
 
         function switchTab(tab) {
@@ -730,27 +587,54 @@
             
             if (tab === 'receive') {
                 resetReceiveState();
+            } else {
+                resetSend();
             }
         }
 
         function switchType(type) {
+            currentSendMode = type;
             document.getElementById('type-file-btn').classList.toggle('active', type === 'file');
             document.getElementById('type-text-btn').classList.toggle('active', type === 'text');
+            document.getElementById('type-screen-btn').classList.toggle('active', type === 'screen');
+            
             document.getElementById('file-input-container').style.display = type === 'file' ? 'block' : 'none';
             document.getElementById('text-input-container').style.display = type === 'text' ? 'block' : 'none';
+            document.getElementById('screen-input-container').style.display = type === 'screen' ? 'block' : 'none';
         }
 
-        // --- ЛОГІКА ВІДПРАВНИКА ---
-        function initSenderPeer(payload) {
+        // --- SCREEN SHARE START ---
+        async function startScreenShare() {
+            try {
+                localStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { cursor: "always" },
+                    audio: false
+                });
+
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('sender-video-wrapper').style.display = 'block';
+
+                localStream.getVideoTracks()[0].onended = () => {
+                    resetSend();
+                };
+
+                initSenderPeer(null, 'stream-');
+            } catch (err) {
+                console.error("Помилка захоплення екрана:", err);
+                showModal('Помилка', 'Не вдалося отримати доступ до екрана.', 'Зрозуміло', () => {});
+            }
+        }
+
+        // --- SENDER PEER LOGIC ---
+        function initSenderPeer(payload, prefix = 'airdrop-') {
             activePayload = payload;
             isSendComplete = false;
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-
-            const peerId = 'airdrop-' + randomCode;
+            const peerId = prefix + randomCode;
 
             if (peer) { peer.destroy(); }
 
-            peer = new Peer(peerId);
+            peer = new Peer(peerId, peerConfig);
 
             peer.on('open', (id) => {
                 document.getElementById('displayCode').innerText = randomCode;
@@ -758,40 +642,37 @@
                 document.getElementById('code-view').style.display = 'block';
                 document.getElementById('sendStatus').innerText = "Очікування підключення...";
                 setSendButton('cancel');
-
-                document.getElementById('qrcode').innerHTML = "";
-                new QRCode(document.getElementById('qrcode'), {
-                    text: randomCode,
-                    width: 130,
-                    height: 130
-                });
             });
 
             peer.on('connection', (conn) => {
                 currentConnection = conn;
-                document.getElementById('sendStatus').innerText = "Підключено! Передача...";
-
-                conn.on('open', () => {
-                    conn.send(activePayload);
-                    setTimeout(() => {
-                        document.getElementById('sendStatus').innerText = "Файл успішно передано!";
+                if (currentSendMode === 'screen') {
+                    document.getElementById('sendStatus').innerText = "Глядач підключився! Передача відео...";
+                    conn.on('open', () => {
+                        const call = peer.call(conn.peer, localStream);
+                        call.on('stream', () => {});
+                        document.getElementById('sendStatus').innerText = "Пряма трансляція активна";
                         isSendComplete = true;
                         setSendButton('done');
-                    }, 500);
-                });
+                    });
+                } else {
+                    document.getElementById('sendStatus').innerText = "Підключено! Передача...";
+                    conn.on('open', () => {
+                        conn.send(activePayload);
+                        setTimeout(() => {
+                            document.getElementById('sendStatus').innerText = "Успішно передано!";
+                            isSendComplete = true;
+                            setSendButton('done');
+                        }, 500);
+                    });
+                }
             });
 
             peer.on('error', (err) => {
                 if (err.type === 'unavailable-id') {
-                    initSenderPeer(payload);
+                    initSenderPeer(payload, prefix);
                 } else {
-                    showModal(
-                        'Помилка з\'єднання',
-                        'Не вдалося встановити з\'єднання. Спробуйте ще раз.',
-                        'Зрозуміло',
-                        () => {},
-                        'error'
-                    );
+                    showModal('Помилка з\'єднання', 'Не вдалося встановити з\'єднання.', 'Зрозуміло', () => {});
                 }
             });
         }
@@ -813,12 +694,11 @@
             } else {
                 showModal(
                     'Підтвердження',
-                    'Ви впевнені, що хочете скасувати передачу? Отримувач не зможе завантажити файл.',
-                    'Так, скасувати',
+                    'Ви впевнені, що хочете зупинити передачу?',
+                    'Так, зупинити',
                     function() {
                         resetSend();
-                    },
-                    'warning'
+                    }
                 );
             }
         }
@@ -833,7 +713,7 @@
                         name: file.name,
                         mime: file.type,
                         data: e.target.result
-                    });
+                    }, 'airdrop-');
                 };
                 reader.readAsDataURL(file);
             }
@@ -842,117 +722,136 @@
         function prepareTextSend() {
             const text = document.getElementById('textPayload').value.trim();
             if (!text) {
-                showModal(
-                    'Помилка',
-                    'Будь ласка, введіть текст для передачі.',
-                    'Зрозуміло',
-                    () => {},
-                    'error'
-                );
+                showModal('Помилка', 'Введіть текст для передачі.', 'Зрозуміло', () => {});
                 return;
             }
             initSenderPeer({
                 type: 'text',
                 data: text
-            });
+            }, 'airdrop-');
         }
 
         function resetSend() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
             if (peer) peer.destroy();
             isSendComplete = false;
             document.getElementById('form-view').style.display = 'block';
             document.getElementById('code-view').style.display = 'none';
             document.getElementById('textPayload').value = '';
-            document.getElementById('qrcode').innerHTML = '';
+            document.getElementById('sender-video-wrapper').style.display = 'none';
             setSendButton('cancel');
         }
 
-        // --- ЛОГІКА ОТРИМУВАЧА ---
+        // --- RECEIVER LOGIC ---
         function connectToSender(code) {
             const statusEl = document.getElementById('receiveStatus');
             statusEl.innerText = "Підключення до відправника...";
-            
             document.getElementById('receiveActions').style.display = 'none';
-            isReceiveComplete = false;
 
-            const targetPeerId = 'airdrop-' + code;
+            tryConnectPeer(code, 'airdrop-', false);
+        }
+
+        function tryConnectPeer(code, prefix, isScreenTry) {
+            const statusEl = document.getElementById('receiveStatus');
+            const targetPeerId = prefix + code;
             
-            if (receiverPeer) {
-                receiverPeer.destroy();
-            }
-            
-            receiverPeer = new Peer();
+            if (receiverPeer) receiverPeer.destroy();
+            receiverPeer = new Peer(peerConfig);
 
             receiverPeer.on('open', () => {
                 const conn = receiverPeer.connect(targetPeerId);
 
                 conn.on('open', () => {
-                    statusEl.innerText = "З'єднання встановлено, завантаження...";
+                    statusEl.innerText = isScreenTry ? "Підключено до стрімера, очікування екрана..." : "З'єднання встановлено, завантаження...";
                 });
 
-                conn.on('data', (payload) => {
-                    statusEl.innerText = "Отримано! Зберігаємо...";
-
-                    if (payload.type === 'text') {
-                        navigator.clipboard.writeText(payload.data).then(() => {
-                            statusEl.innerText = "Текст скопійовано в буфер обміну!";
-                            showReceiveDone();
-                        }).catch(() => {
-                            statusEl.innerText = "Отримано текст (див. нижче)";
-                            showReceiveDone();
+                if (isScreenTry) {
+                    receiverPeer.on('call', (call) => {
+                        call.answer();
+                        call.on('stream', (remoteStream) => {
+                            statusEl.innerText = "Пряма трансляція активна";
+                            document.getElementById('receiver-video-wrapper').style.display = 'block';
+                            const video = document.getElementById('remoteVideo');
+                            video.srcObject = remoteStream;
+                            video.play().catch(e => console.log(e));
+                            document.getElementById('receiveActions').style.display = 'block';
                         });
+                        call.on('close', () => {
+                            statusEl.innerText = "Трансляцію завершено стрімером";
+                        });
+                    });
+                } else {
+                    conn.on('data', (payload) => {
+                        statusEl.innerText = "Отримано дані!";
+                        if (payload.type === 'text') {
+                            navigator.clipboard.writeText(payload.data).then(() => {
+                                statusEl.innerText = "Текст скопійовано в буфер обміну!";
+                                showReceiveDone();
+                            }).catch(() => {
+                                statusEl.innerText = "Отримано текст:";
+                                showReceiveDone();
+                            });
 
-                        let p = document.createElement('p');
-                        p.style.marginTop = "10px";
-                        p.style.wordBreak = "break-all";
-                        p.style.padding = "10px";
-                        p.style.background = "#fafafa";
-                        p.style.borderRadius = "8px";
-                        p.innerText = payload.data;
-                        document.getElementById('receive-panel').appendChild(p);
+                            let p = document.createElement('p');
+                            p.style.marginTop = "10px";
+                            p.style.wordBreak = "break-all";
+                            p.style.padding = "10px";
+                            p.style.background = "#fafafa";
+                            p.style.borderRadius = "8px";
+                            p.innerText = payload.data;
+                            document.getElementById('receive-panel').appendChild(p);
 
-                    } else if (payload.type === 'file') {
-                        try {
-                            const blob = dataURItoBlob(payload.data);
-                            const url = URL.createObjectURL(blob);
+                        } else if (payload.type === 'file') {
+                            try {
+                                const blob = dataURItoBlob(payload.data);
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = payload.name;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = payload.name;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            
-                            setTimeout(() => URL.revokeObjectURL(url), 5000);
-
-                            statusEl.innerText = `Файл "${payload.name}" успішно завантажено!`;
-                            showReceiveDone();
-                        } catch (error) {
-                            statusEl.innerText = "Помилка при обробці файлу";
-                            showModal(
-                                'Помилка',
-                                'Не вдалося обробити отриманий файл. Спробуйте ще раз.',
-                                'Зрозуміло',
-                                () => {},
-                                'error'
-                            );
+                                statusEl.innerText = `Файл "${payload.name}" успішно завантажено!`;
+                                showReceiveDone();
+                            } catch (error) {
+                                statusEl.innerText = "Помилка при обробці файлу";
+                            }
                         }
+                    });
+                }
+
+                conn.on('error', () => {
+                    if (!isScreenTry) {
+                        tryConnectPeer(code, 'stream-', true);
+                    } else {
+                        statusEl.innerText = "Помилка з'єднання або невірний код.";
                     }
                 });
-
-                conn.on('error', (err) => {
-                    statusEl.innerText = "Помилку знайдено або код невірний";
-                });
             });
-            
+
             receiverPeer.on('error', (err) => {
-                statusEl.innerText = "Помилка з'єднання. Спробуйте ще раз";
+                if (!isScreenTry && err.type === 'peer-unavailable') {
+                    tryConnectPeer(code, 'stream-', true);
+                } else if (isScreenTry) {
+                    statusEl.innerText = "Невірний код або стрімер офлайн.";
+                }
             });
         }
 
         function showReceiveDone() {
             isReceiveComplete = true;
             document.getElementById('receiveActions').style.display = 'block';
+        }
+
+        function toggleFullscreen() {
+            const video = document.getElementById('remoteVideo');
+            if (video.requestFullscreen) video.requestFullscreen();
+            else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
         }
 
         function resetReceive() {
@@ -966,10 +865,16 @@
         function resetReceiveState() {
             isReceiveComplete = false;
             document.getElementById('receiveActions').style.display = 'none';
+            document.getElementById('receiver-video-wrapper').style.display = 'none';
             document.getElementById('receiveStatus').innerText = '';
             
+            const remoteVideo = document.getElementById('remoteVideo');
+            if (remoteVideo.srcObject) {
+                remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+                remoteVideo.srcObject = null;
+            }
+
             clearPinInputs();
-            
             const receivePanel = document.getElementById('receive-panel');
             const extraTexts = receivePanel.querySelectorAll('p:not(.subtitle):not(.status-badge)');
             extraTexts.forEach(p => p.remove());
@@ -985,22 +890,6 @@
             }
             return new Blob([ab], { type: mimeString });
         }
-
-        const dropzone = document.getElementById('dropzone');
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault();
-                dropzone.classList.add('dragover'); });
-        });
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, (e) => { e.preventDefault();
-                dropzone.classList.remove('dragover'); });
-        });
-        dropzone.addEventListener('drop', (e) => {
-            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                document.getElementById('fileInput').files = e.dataTransfer.files;
-                handleFileSelect(document.getElementById('fileInput'));
-            }
-        });
     </script>
 </body>
 </html>
