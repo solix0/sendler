@@ -283,32 +283,6 @@
             text-align: center;
         }
 
-        .progress-container {
-            width: 100%;
-            background-color: var(--border-color);
-            border-radius: 8px;
-            margin: 15px 0;
-            height: 14px;
-            overflow: hidden;
-            display: none;
-            position: relative;
-        }
-
-        .progress-bar {
-            width: 0%;
-            height: 100%;
-            background-color: var(--primary);
-            transition: width 0.15s ease;
-        }
-
-        .progress-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            font-weight: 600;
-            display: none;
-        }
-
         .video-container {
             position: relative;
             width: 100%;
@@ -350,13 +324,14 @@
             margin: 20px 0;
         }
 
+        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(6px);
-            z-index0: 1000;
+            z-index: 1000;
             justify-content: center;
             align-items: center;
         }
@@ -422,7 +397,7 @@
                             <svg viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <div class="dropzone-text" id="selectedFileName">Натисніть або перетягніть файл сюди</div>
+                            <div class="dropzone-text">Натисніть або перетягніть файл сюди</div>
                             <div class="dropzone-subtext">Будь-які формати</div>
                             <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
                         </div>
@@ -461,11 +436,6 @@
                         </div>
                     </div>
 
-                    <div class="progress-container" id="sendProgressContainer">
-                        <div class="progress-bar" id="sendProgressBar"></div>
-                    </div>
-                    <div class="progress-text" id="sendProgressText">0%</div>
-
                     <div class="status-badge" id="sendStatus">Очікування підключення...</div>
                     <button class="btn btn-secondary" id="sendActionButton" onclick="handleSendAction()">Скасувати</button>
                 </div>
@@ -489,11 +459,6 @@
                     </div>
                     <button class="btn btn-secondary" style="margin-top: 10px;" onclick="toggleFullscreen()">На весь екран ⛶</button>
                 </div>
-
-                <div class="progress-container" id="receiveProgressContainer">
-                    <div class="progress-bar" id="receiveProgressBar"></div>
-                </div>
-                <div class="progress-text" id="receiveProgressText">0%</div>
 
                 <div class="status-badge" id="receiveStatus" style="text-align: center;"></div>
                 
@@ -532,10 +497,7 @@
             }
         };
 
-        const CHUNK_SIZE = 64 * 1024;
-
         let peer = null;
-        let selectedFile = null;
         let activePayload = null;
         let currentConnection = null;
         let isSendComplete = false;
@@ -565,49 +527,8 @@
             closeModal();
         });
 
-        // --- DRAG AND DROP & PIN INPUT LOGIC ---
+        // --- PIN INPUT LOGIC ---
         document.addEventListener('DOMContentLoaded', function() {
-            // Blokirovka standartnogo otkrytiya fajla v brauzere
-            window.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            }, false);
-
-            window.addEventListener('drop', function(e) {
-                e.preventDefault();
-            }, false);
-
-            const dropzone = document.getElementById('dropzone');
-            if (dropzone) {
-                dropzone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.classList.add('dragover');
-                });
-
-                dropzone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.classList.remove('dragover');
-                });
-
-                dropzone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    this.classList.remove('dragover');
-
-                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        selectedFile = e.dataTransfer.files[0];
-                        document.getElementById('selectedFileName').innerText = selectedFile.name;
-                        initSenderPeer({
-                            type: 'file',
-                            name: selectedFile.name,
-                            size: selectedFile.size,
-                            mime: selectedFile.type
-                        }, 'airdrop-');
-                    }
-                });
-            }
-
             const inputs = document.querySelectorAll('.pin-input');
             inputs.forEach((input, index) => {
                 input.addEventListener('input', function() {
@@ -682,6 +603,7 @@
             document.getElementById('screen-input-container').style.display = type === 'screen' ? 'block' : 'none';
         }
 
+        // --- SCREEN SHARE START ---
         async function startScreenShare() {
             try {
                 localStream = await navigator.mediaDevices.getDisplayMedia({
@@ -703,6 +625,7 @@
             }
         }
 
+        // --- SENDER PEER LOGIC ---
         function initSenderPeer(payload, prefix = 'airdrop-') {
             activePayload = payload;
             isSendComplete = false;
@@ -733,18 +656,14 @@
                         setSendButton('done');
                     });
                 } else {
+                    document.getElementById('sendStatus').innerText = "Підключено! Передача...";
                     conn.on('open', () => {
-                        if (activePayload && activePayload.type === 'file') {
-                            sendFileInChunks(conn, selectedFile);
-                        } else {
-                            document.getElementById('sendStatus').innerText = "Підключено! Передача...";
-                            conn.send(activePayload);
-                            setTimeout(() => {
-                                document.getElementById('sendStatus').innerText = "Успішно передано!";
-                                isSendComplete = true;
-                                setSendButton('done');
-                            }, 300);
-                        }
+                        conn.send(activePayload);
+                        setTimeout(() => {
+                            document.getElementById('sendStatus').innerText = "Успішно передано!";
+                            isSendComplete = true;
+                            setSendButton('done');
+                        }, 500);
                     });
                 }
             });
@@ -756,64 +675,6 @@
                     showModal('Помилка з\'єднання', 'Не вдалося встановити з\'єднання.', 'Зрозуміло', () => {});
                 }
             });
-        }
-
-        function sendFileInChunks(conn, file) {
-            document.getElementById('sendStatus').innerText = "Вигрузка файла...";
-            const progressContainer = document.getElementById('sendProgressContainer');
-            const progressBar = document.getElementById('sendProgressBar');
-            const progressText = document.getElementById('sendProgressText');
-
-            progressContainer.style.display = 'block';
-            progressText.style.display = 'block';
-
-            conn.send({
-                type: 'file-header',
-                name: file.name,
-                mime: file.type,
-                size: file.size
-            });
-
-            let offset = 0;
-            const dataChannel = conn.dataChannel;
-            dataChannel.binaryType = 'arraybuffer';
-
-            function readNextChunk() {
-                if (offset >= file.size) {
-                    conn.send({ type: 'file-end' });
-                    progressBar.style.width = '100%';
-                    progressText.innerText = '100%';
-                    document.getElementById('sendStatus').innerText = "Успішно передано!";
-                    isSendComplete = true;
-                    setSendButton('done');
-                    return;
-                }
-
-                const slice = file.slice(offset, offset + CHUNK_SIZE);
-                const reader = new FileReader();
-
-                reader.onload = function(e) {
-                    const buffer = e.target.result;
-                    
-                    if (dataChannel.bufferedAmount > CHUNK_SIZE * 8) {
-                        setTimeout(readNextChunk, 50);
-                        return;
-                    }
-
-                    conn.send(buffer);
-                    offset += buffer.byteLength;
-
-                    const percent = Math.floor((offset / file.size) * 100);
-                    progressBar.style.width = percent + '%';
-                    progressText.innerText = percent + '%';
-
-                    readNextChunk();
-                };
-
-                reader.readAsArrayBuffer(slice);
-            }
-
-            readNextChunk();
         }
 
         function setSendButton(type) {
@@ -844,14 +705,17 @@
 
         function handleFileSelect(input) {
             if (input.files && input.files[0]) {
-                selectedFile = input.files[0];
-                document.getElementById('selectedFileName').innerText = selectedFile.name;
-                initSenderPeer({
-                    type: 'file',
-                    name: selectedFile.name,
-                    size: selectedFile.size,
-                    mime: selectedFile.type
-                }, 'airdrop-');
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    initSenderPeer({
+                        type: 'file',
+                        name: file.name,
+                        mime: file.type,
+                        data: e.target.result
+                    }, 'airdrop-');
+                };
+                reader.readAsDataURL(file);
             }
         }
 
@@ -873,19 +737,15 @@
                 localStream = null;
             }
             if (peer) peer.destroy();
-            selectedFile = null;
             isSendComplete = false;
             document.getElementById('form-view').style.display = 'block';
             document.getElementById('code-view').style.display = 'none';
             document.getElementById('textPayload').value = '';
-            document.getElementById('selectedFileName').innerText = 'Натисніть або перетягніть файл сюди';
             document.getElementById('sender-video-wrapper').style.display = 'none';
-            document.getElementById('sendProgressContainer').style.display = 'none';
-            document.getElementById('sendProgressText').style.display = 'none';
-            document.getElementById('sendProgressBar').style.width = '0%';
             setSendButton('cancel');
         }
 
+        // --- RECEIVER LOGIC ---
         function connectToSender(code) {
             const statusEl = document.getElementById('receiveStatus');
             statusEl.innerText = "Підключення до відправника...";
@@ -900,10 +760,6 @@
             
             if (receiverPeer) receiverPeer.destroy();
             receiverPeer = new Peer(peerConfig);
-
-            let incomingFileInfo = null;
-            let receivedChunks = [];
-            let receivedBytes = 0;
 
             receiverPeer.on('open', () => {
                 const conn = receiverPeer.connect(targetPeerId);
@@ -928,59 +784,42 @@
                         });
                     });
                 } else {
-                    conn.on('data', (data) => {
-                        if (typeof data === 'object' && !(data instanceof ArrayBuffer)) {
-                            if (data.type === 'text') {
-                                statusEl.innerText = "Отримано дані!";
-                                navigator.clipboard.writeText(data.data).then(() => {
-                                    statusEl.innerText = "Текст скопійовано в буфер обміну!";
-                                    showReceiveDone();
-                                }).catch(() => {
-                                    statusEl.innerText = "Отримано текст:";
-                                    showReceiveDone();
-                                });
+                    conn.on('data', (payload) => {
+                        statusEl.innerText = "Отримано дані!";
+                        if (payload.type === 'text') {
+                            navigator.clipboard.writeText(payload.data).then(() => {
+                                statusEl.innerText = "Текст скопійовано в буфер обміну!";
+                                showReceiveDone();
+                            }).catch(() => {
+                                statusEl.innerText = "Отримано текст:";
+                                showReceiveDone();
+                            });
 
-                                let p = document.createElement('p');
-                                p.style.marginTop = "10px";
-                                p.style.wordBreak = "break-all";
-                                p.style.padding = "10px";
-                                p.style.background = "#fafafa";
-                                p.style.borderRadius = "8px";
-                                p.innerText = data.data;
-                                document.getElementById('receive-panel').appendChild(p);
+                            let p = document.createElement('p');
+                            p.style.marginTop = "10px";
+                            p.style.wordBreak = "break-all";
+                            p.style.padding = "10px";
+                            p.style.background = "#fafafa";
+                            p.style.borderRadius = "8px";
+                            p.innerText = payload.data;
+                            document.getElementById('receive-panel').appendChild(p);
 
-                            } else if (data.type === 'file-header') {
-                                incomingFileInfo = data;
-                                receivedChunks = [];
-                                receivedBytes = 0;
-                                statusEl.innerText = `Завантаження "${data.name}"...`;
-                                document.getElementById('receiveProgressContainer').style.display = 'block';
-                                document.getElementById('receiveProgressText').style.display = 'block';
-
-                            } else if (data.type === 'file-end') {
-                                const blob = new Blob(receivedChunks, { type: incomingFileInfo.mime || 'application/octet-stream' });
+                        } else if (payload.type === 'file') {
+                            try {
+                                const blob = dataURItoBlob(payload.data);
                                 const url = URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
-                                a.download = incomingFileInfo.name;
+                                a.download = payload.name;
                                 document.body.appendChild(a);
                                 a.click();
                                 document.body.removeChild(a);
-                                setTimeout(() => URL.revokeObjectURL(url), 10000);
+                                setTimeout(() => URL.revokeObjectURL(url), 5000);
 
-                                document.getElementById('receiveProgressBar').style.width = '100%';
-                                document.getElementById('receiveProgressText').innerText = '100%';
-                                statusEl.innerText = `Файл "${incomingFileInfo.name}" успішно завантажено!`;
+                                statusEl.innerText = `Файл "${payload.name}" успішно завантажено!`;
                                 showReceiveDone();
-                            }
-                        } else if (data instanceof ArrayBuffer) {
-                            receivedChunks.push(data);
-                            receivedBytes += data.byteLength;
-
-                            if (incomingFileInfo && incomingFileInfo.size) {
-                                const percent = Math.floor((receivedBytes / incomingFileInfo.size) * 100);
-                                document.getElementById('receiveProgressBar').style.width = percent + '%';
-                                document.getElementById('receiveProgressText').innerText = percent + '%';
+                            } catch (error) {
+                                statusEl.innerText = "Помилка при обробці файлу";
                             }
                         }
                     });
@@ -1027,9 +866,6 @@
             isReceiveComplete = false;
             document.getElementById('receiveActions').style.display = 'none';
             document.getElementById('receiver-video-wrapper').style.display = 'none';
-            document.getElementById('receiveProgressContainer').style.display = 'none';
-            document.getElementById('receiveProgressText').style.display = 'none';
-            document.getElementById('receiveProgressBar').style.width = '0%';
             document.getElementById('receiveStatus').innerText = '';
             
             const remoteVideo = document.getElementById('remoteVideo');
@@ -1042,6 +878,17 @@
             const receivePanel = document.getElementById('receive-panel');
             const extraTexts = receivePanel.querySelectorAll('p:not(.subtitle):not(.status-badge)');
             extraTexts.forEach(p => p.remove());
+        }
+
+        function dataURItoBlob(dataURI) {
+            const byteString = atob(dataURI.split(',')[1]);
+            const mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: mimeString });
         }
     </script>
 </body>
