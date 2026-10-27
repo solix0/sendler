@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="logo.png">
     <title>sendler</title>
-    <!-- Pidklyuchayemo PeerJS z CDN -->
+    <!-- Підключаємо PeerJS з CDN -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -283,7 +283,6 @@
             text-align: center;
         }
 
-        /* Progress Bar Styles */
         .progress-container {
             width: 100%;
             background-color: var(--border-color);
@@ -351,7 +350,6 @@
             margin: 20px 0;
         }
 
-        /* MODAL */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -534,7 +532,7 @@
             }
         };
 
-        const CHUNK_SIZE = 64 * 1024;
+        const CHUNK_SIZE = 16 * 1024; // Зменшено до 16 КБ для ідеальної стабільності на мобільних і ПК
 
         let peer = null;
         let selectedFile = null;
@@ -546,6 +544,7 @@
         let pendingAction = null;
         let localStream = null;
         let currentSendMode = 'file';
+        let resolveAck = null; // Проміс для синхронізації передачі чанків
 
         function showModal(title, text, confirmText, onConfirm) {
             const modal = document.getElementById('confirmModal');
@@ -567,8 +566,42 @@
             closeModal();
         });
 
-        // --- PIN INPUT LOGIC ---
         document.addEventListener('DOMContentLoaded', function() {
+            window.addEventListener('dragover', function(e) { e.preventDefault(); }, false);
+            window.addEventListener('drop', function(e) { e.preventDefault(); }, false);
+
+            const dropzone = document.getElementById('dropzone');
+            if (dropzone) {
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.add('dragover');
+                });
+
+                dropzone.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.remove('dragover');
+                });
+
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.classList.remove('dragover');
+
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        selectedFile = e.dataTransfer.files[0];
+                        document.getElementById('selectedFileName').innerText = selectedFile.name;
+                        initSenderPeer({
+                            type: 'file',
+                            name: selectedFile.name,
+                            size: selectedFile.size,
+                            mime: selectedFile.type
+                        }, 'airdrop-');
+                    }
+                });
+            }
+
             const inputs = document.querySelectorAll('.pin-input');
             inputs.forEach((input, index) => {
                 input.addEventListener('input', function() {
@@ -684,6 +717,14 @@
 
             peer.on('connection', (conn) => {
                 currentConnection = conn;
+
+                // Слухаємо підтвердження (ACK) від отримувача
+                conn.on('data', (data) => {
+                    if (data && data.type === 'ack') {
+                        if (resolveAck) resolveAck();
+                    }
+                });
+
                 if (currentSendMode === 'screen') {
                     document.getElementById('sendStatus').innerText = "Глядач підключився! Передача відео...";
                     conn.on('open', () => {
@@ -719,7 +760,7 @@
             });
         }
 
-        function sendFileInChunks(conn, file) {
+        async function sendFileInChunks(conn, file) {
             document.getElementById('sendStatus').innerText = "Вигрузка файла...";
             const progressContainer = document.getElementById('sendProgressContainer');
             const progressBar = document.getElementById('sendProgressBar');
@@ -728,6 +769,7 @@
             progressContainer.style.display = 'block';
             progressText.style.display = 'block';
 
+            // Надсилаємо заголовок з метаданими
             conn.send({
                 type: 'file-header',
                 name: file.name,
@@ -737,44 +779,34 @@
 
             let offset = 0;
             const dataChannel = conn.dataChannel;
-            dataChannel.binaryType = 'arraybuffer';
+            if (dataChannel) dataChannel.binaryType = 'arraybuffer';
 
-            function readNextChunk() {
-                if (offset >= file.size) {
-                    conn.send({ type: 'file-end' });
-                    progressBar.style.width = '100%';
-                    progressText.innerText = '100%';
-                    document.getElementById('sendStatus').innerText = "Успішно передано!";
-                    isSendComplete = true;
-                    setSendButton('done');
-                    return;
-                }
-
+            while (offset < file.size) {
                 const slice = file.slice(offset, offset + CHUNK_SIZE);
-                const reader = new FileReader();
+                const buffer = await slice.arrayBuffer();
 
-                reader.onload = function(e) {
-                    const buffer = e.target.result;
-                    
-                    if (dataChannel.bufferedAmount > CHUNK_SIZE * 8) {
-                        setTimeout(readNextChunk, 50);
-                        return;
-                    }
+                // Створюємо проміс, який розблокується тільки після отримання ACK від отримувача
+                const ackPromise = new Promise((resolve) => {
+                    resolveAck = resolve;
+                });
 
-                    conn.send(buffer);
-                    offset += buffer.byteLength;
+                conn.send(buffer);
+                offset += buffer.byteLength;
 
-                    const percent = Math.floor((offset / file.size) * 100);
-                    progressBar.style.width = percent + '%';
-                    progressText.innerText = percent + '%';
+                const percent = Math.floor((offset / file.size) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.innerText = percent + '%';
 
-                    readNextChunk();
-                };
-
-                reader.readAsArrayBuffer(slice);
+                // Чекаємо підтвердження, що отримувач прийняв пакет і зберіг його в пам'ять
+                await ackPromise;
             }
 
-            readNextChunk();
+            conn.send({ type: 'file-end' });
+            progressBar.style.width = '100%';
+            progressText.innerText = '100%';
+            document.getElementById('sendStatus').innerText = "Успішно передано!";
+            isSendComplete = true;
+            setSendButton('done');
         }
 
         function setSendButton(type) {
@@ -836,6 +868,7 @@
             if (peer) peer.destroy();
             selectedFile = null;
             isSendComplete = false;
+            resolveAck = null;
             document.getElementById('form-view').style.display = 'block';
             document.getElementById('code-view').style.display = 'none';
             document.getElementById('textPayload').value = '';
@@ -935,6 +968,7 @@
                                 showReceiveDone();
                             }
                         } else if (data instanceof ArrayBuffer) {
+                            // Приймаємо чанк, додаємо до масиву
                             receivedChunks.push(data);
                             receivedBytes += data.byteLength;
 
@@ -943,6 +977,9 @@
                                 document.getElementById('receiveProgressBar').style.width = percent + '%';
                                 document.getElementById('receiveProgressText').innerText = percent + '%';
                             }
+
+                            // Відправляємо відправнику сигнал підтвердження (ACK), що пакет успішно прийнято
+                            conn.send({ type: 'ack' });
                         }
                     });
                 }
